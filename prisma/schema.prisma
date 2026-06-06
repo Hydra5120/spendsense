@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Transaction {
+  id             String        @id @default(cuid())
+  amount         Float
+  description    String
+  date           DateTime
+  type           String        // "income" | "expense"
+  category       String
+  aiCategorized  Boolean       @default(false)
+  incomeSourceId String?
+  incomeSource   IncomeSource? @relation(fields: [incomeSourceId], references: [id], onDelete: SetNull)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Budget {
+  id        String   @id @default(cuid())
+  category  String
+  limit     Float
+  month     Int
+  year      Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([category, month, year])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  role      String   // "user" | "assistant"
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model Nudge {
+  id        String   @id @default(cuid())
+  type      String   // "income_detected" | "high_spending" | "low_balance" | "daily_tip"
+  title     String
+  message   String
+  dismissed Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model IncomeSource {
+  id           String        @id @default(cuid())
+  name         String
+  type         String        // "centrelink" | "casual_work" | "scholarship" | "freelance" | "other"
+  amount       Float
+  frequency    String        // "weekly" | "fortnightly" | "monthly" | "one_off"
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model SavingsGoal {
+  id            String   @id @default(cuid())
+  name          String
+  targetAmount  Float
+  currentAmount Float    @default(0)
+  deadline      DateTime
+  weeklyTarget  Float?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
