@@ -6,6 +6,7 @@ interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  flagged?: boolean;
   createdAt: string;
 }
 
@@ -57,15 +58,10 @@ export function useChat() {
         setStreamingContent(fullText);
       }
 
-      const assistantMessage: Message = {
-        id: `asst-${Date.now()}`,
-        role: "assistant",
-        content: fullText,
-        createdAt: new Date().toISOString(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
       setStreamingContent("");
+
+      const updated = await fetch("/api/chat/history").then((r) => r.json());
+      setMessages(updated);
     } catch {
       const errorMessage: Message = {
         id: `err-${Date.now()}`,
@@ -80,5 +76,27 @@ export function useChat() {
     }
   }, []);
 
-  return { messages, isLoading, streamingContent, sendMessage };
+  const clearChat = useCallback(async () => {
+    await fetch("/api/chat/history", { method: "DELETE" });
+    setMessages([]);
+  }, []);
+
+  const flagMessage = useCallback(async (id: string) => {
+    const msg = messages.find((m) => m.id === id);
+    if (!msg) return;
+
+    const newFlagged = !msg.flagged;
+
+    setMessages((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, flagged: newFlagged } : m))
+    );
+
+    await fetch(`/api/chat/history/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ flagged: newFlagged }),
+    });
+  }, [messages]);
+
+  return { messages, isLoading, streamingContent, sendMessage, clearChat, flagMessage };
 }

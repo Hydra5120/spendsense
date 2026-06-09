@@ -9,15 +9,17 @@ interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  flagged?: boolean;
 }
 
 interface ChatMessagesProps {
   messages: Message[];
   isLoading: boolean;
   streamingContent: string;
+  onFlagMessage?: (id: string) => void;
 }
 
-export function ChatMessages({ messages, isLoading, streamingContent }: ChatMessagesProps) {
+export function ChatMessages({ messages, isLoading, streamingContent, onFlagMessage }: ChatMessagesProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,7 +55,13 @@ export function ChatMessages({ messages, isLoading, streamingContent }: ChatMess
         )}
 
         {messages.map((msg) => (
-          <ChatBubble key={msg.id} role={msg.role} content={msg.content} />
+          <ChatBubble
+            key={msg.id}
+            role={msg.role}
+            content={msg.content}
+            flagged={msg.flagged}
+            onFlag={msg.role === "assistant" && onFlagMessage ? () => onFlagMessage(msg.id) : undefined}
+          />
         ))}
 
         {streamingContent && (

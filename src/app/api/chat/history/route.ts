@@ -16,3 +16,8 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json(messages.reverse());
 }
+
+export async function DELETE() {
+  await prisma.chatMessage.deleteMany();
+  return NextResponse.json({ success: true });
+}

@@ -37,6 +37,7 @@ model ChatMessage {
   id        String   @id @default(cuid())
   role      String   // "user" | "assistant"
   content   String
+  flagged   Boolean  @default(false)
   createdAt DateTime @default(now())
 }
 
