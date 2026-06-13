@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SpendSense — Smart Finance for Students",
   description:
-    "AI-powered personal finance tracker for Australian university students",
+    "AI-powered personal finance tracker designed for university students",
 };
 
 export default function RootLayout({
