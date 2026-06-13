@@ -4,13 +4,14 @@ import { geminiChatModel } from "@/lib/gemini";
 
 export async function POST(request: NextRequest) {
   const { message } = await request.json();
+  const sessionId = request.headers.get("x-session-id") ?? "";
 
   if (!message) {
     return new Response("Message required", { status: 400 });
   }
 
   await prisma.chatMessage.create({
-    data: { role: "user", content: message },
+    data: { role: "user", content: message, sessionId },
   });
 
   const now = new Date();
@@ -27,6 +28,7 @@ export async function POST(request: NextRequest) {
     }),
     prisma.savingsGoal.findMany(),
     prisma.chatMessage.findMany({
+      where: { sessionId },
       orderBy: { createdAt: "desc" },
       take: 10,
     }),
@@ -114,7 +116,7 @@ Guidelines:
           }
 
           await prisma.chatMessage.create({
-            data: { role: "assistant", content: fullResponse },
+            data: { role: "assistant", content: fullResponse, sessionId },
           });
 
           controller.close();
@@ -134,7 +136,7 @@ Guidelines:
     const fallback = "I'm having trouble connecting right now. Please try again in a moment!";
 
     await prisma.chatMessage.create({
-      data: { role: "assistant", content: fallback },
+      data: { role: "assistant", content: fallback, sessionId },
     });
 
     return new Response(fallback);

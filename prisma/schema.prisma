@@ -38,6 +38,7 @@ model ChatMessage {
   role      String   // "user" | "assistant"
   content   String
   flagged   Boolean  @default(false)
+  sessionId String   @default("")
   createdAt DateTime @default(now())
 }
 

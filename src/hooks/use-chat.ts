@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 
 interface Message {
   id: string;
@@ -10,13 +10,26 @@ interface Message {
   createdAt: string;
 }
 
+function getSessionId(): string {
+  let id = localStorage.getItem("chatSessionId");
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem("chatSessionId", id);
+  }
+  return id;
+}
+
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
+  const sessionId = useRef<string>("");
 
   useEffect(() => {
-    fetch("/api/chat/history")
+    sessionId.current = getSessionId();
+    fetch("/api/chat/history", {
+      headers: { "x-session-id": sessionId.current },
+    })
       .then((res) => res.json())
       .then((data) => setMessages(data))
       .catch(() => {});
@@ -37,7 +50,7 @@ export function useChat() {
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-session-id": sessionId.current },
         body: JSON.stringify({ message: content }),
       });
 
@@ -60,7 +73,9 @@ export function useChat() {
 
       setStreamingContent("");
 
-      const updated = await fetch("/api/chat/history").then((r) => r.json());
+      const updated = await fetch("/api/chat/history", {
+        headers: { "x-session-id": sessionId.current },
+      }).then((r) => r.json());
       setMessages(updated);
     } catch {
       const errorMessage: Message = {
@@ -77,7 +92,10 @@ export function useChat() {
   }, []);
 
   const clearChat = useCallback(async () => {
-    await fetch("/api/chat/history", { method: "DELETE" });
+    await fetch("/api/chat/history", {
+      method: "DELETE",
+      headers: { "x-session-id": sessionId.current },
+    });
     setMessages([]);
   }, []);
 
