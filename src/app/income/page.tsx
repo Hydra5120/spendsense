@@ -2,6 +2,9 @@ import { prisma } from "@/lib/db";
 import { IncomeForm } from "@/components/income/income-form";
 import { IncomeList } from "@/components/income/income-list";
 import { IncomeVsExpenses } from "@/components/income/income-vs-expenses";
+import { CentrelinkTracker } from "@/components/income/centrelink-tracker";
+import { HECSTracker } from "@/components/income/hecs-tracker";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 async function getIncomeData() {
   const sources = await prisma.incomeSource.findMany({
@@ -54,9 +57,26 @@ export default async function IncomePage() {
         <IncomeForm />
       </div>
 
-      <IncomeList sources={sources} />
+      <Tabs defaultValue="sources">
+        <TabsList>
+          <TabsTrigger value="sources">Income Sources</TabsTrigger>
+          <TabsTrigger value="centrelink">Centrelink</TabsTrigger>
+          <TabsTrigger value="hecs">HECS Debt</TabsTrigger>
+        </TabsList>
 
-      <IncomeVsExpenses data={chartData} />
+        <TabsContent value="sources" className="space-y-6 pt-4">
+          <IncomeList sources={sources} />
+          <IncomeVsExpenses data={chartData} />
+        </TabsContent>
+
+        <TabsContent value="centrelink" className="pt-4">
+          <CentrelinkTracker />
+        </TabsContent>
+
+        <TabsContent value="hecs" className="pt-4">
+          <HECSTracker sources={sources} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

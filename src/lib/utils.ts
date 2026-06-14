@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { HECS_REPAYMENT_TIERS } from "@/lib/constants"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -27,4 +28,11 @@ export function formatDateShort(date: Date | string): string {
     day: "numeric",
     month: "short",
   })
+}
+
+export function getHecsTier(annualIncome: number): { rate: number; repayment: number } {
+  const tier = HECS_REPAYMENT_TIERS.find(
+    (t) => annualIncome >= t.min && annualIncome <= t.max
+  ) ?? HECS_REPAYMENT_TIERS[0];
+  return { rate: tier.rate, repayment: Math.round(annualIncome * tier.rate * 100) / 100 };
 }

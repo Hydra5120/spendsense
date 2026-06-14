@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Bot, User, Flag } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 interface ChatBubbleProps {
   role: "user" | "assistant";
@@ -31,7 +32,13 @@ export function ChatBubble({ role, content, flagged, onFlag }: ChatBubbleProps) 
             flagged && "ring-2 ring-red-400"
           )}
         >
-          <p className="whitespace-pre-wrap">{content}</p>
+          {isUser ? (
+            <p className="whitespace-pre-wrap">{content}</p>
+          ) : (
+            <div className="prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0">
+              <ReactMarkdown>{content}</ReactMarkdown>
+            </div>
+          )}
         </div>
         {!isUser && onFlag && (
           <button
